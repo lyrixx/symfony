@@ -35,6 +35,40 @@ class OutputTest extends \PHPUnit_Framework_TestCase
         $output = new TestOutput();
         $output->setVerbosity(Output::VERBOSITY_QUIET);
         $this->assertEquals(Output::VERBOSITY_QUIET, $output->getVerbosity(), '->setVerbosity() sets the verbosity');
+
+        $this->assertTrue($output->isVerbosityQuiet());
+        $this->assertFalse($output->isVerbosityNormal());
+        $this->assertFalse($output->isVerbosityVerbose());
+        $this->assertFalse($output->isVerbosityVeryVerbose());
+        $this->assertFalse($output->isVerbosityDebug());
+
+        $output->setVerbosity(Output::VERBOSITY_NORMAL);
+        $this->assertFalse($output->isVerbosityQuiet());
+        $this->assertTrue($output->isVerbosityNormal());
+        $this->assertFalse($output->isVerbosityVerbose());
+        $this->assertFalse($output->isVerbosityVeryVerbose());
+        $this->assertFalse($output->isVerbosityDebug());
+
+        $output->setVerbosity(Output::VERBOSITY_VERBOSE);
+        $this->assertFalse($output->isVerbosityQuiet());
+        $this->assertTrue($output->isVerbosityNormal());
+        $this->assertTrue($output->isVerbosityVerbose());
+        $this->assertFalse($output->isVerbosityVeryVerbose());
+        $this->assertFalse($output->isVerbosityDebug());
+
+        $output->setVerbosity(Output::VERBOSITY_VERY_VERBOSE);
+        $this->assertFalse($output->isVerbosityQuiet());
+        $this->assertTrue($output->isVerbosityNormal());
+        $this->assertTrue($output->isVerbosityVerbose());
+        $this->assertTrue($output->isVerbosityVeryVerbose());
+        $this->assertFalse($output->isVerbosityDebug());
+
+        $output->setVerbosity(Output::VERBOSITY_DEBUG);
+        $this->assertFalse($output->isVerbosityQuiet());
+        $this->assertTrue($output->isVerbosityNormal());
+        $this->assertTrue($output->isVerbosityVerbose());
+        $this->assertTrue($output->isVerbosityVeryVerbose());
+        $this->assertTrue($output->isVerbosityDebug());
     }
 
     public function testWriteWithVerbosityQuiet()

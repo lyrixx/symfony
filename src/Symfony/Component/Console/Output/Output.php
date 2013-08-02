@@ -98,6 +98,31 @@ abstract class Output implements OutputInterface
         return $this->verbosity;
     }
 
+    public function isVerbosityQuiet()
+    {
+        return static::VERBOSITY_QUIET === $this->verbosity;
+    }
+
+    public function isVerbosityNormal()
+    {
+        return static::VERBOSITY_NORMAL <= $this->verbosity;
+    }
+
+    public function isVerbosityVerbose()
+    {
+        return static::VERBOSITY_VERBOSE <= $this->verbosity;
+    }
+
+    public function isVerbosityVeryVerbose()
+    {
+        return static::VERBOSITY_VERY_VERBOSE <= $this->verbosity;
+    }
+
+    public function isVerbosityDebug()
+    {
+        return static::VERBOSITY_DEBUG <= $this->verbosity;
+    }
+
     /**
      * {@inheritdoc}
      */
