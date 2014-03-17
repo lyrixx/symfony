@@ -6,6 +6,7 @@ CHANGELOG
 
  * added a Process helper
  * added a DebugFormatter helper
+ * added a way to lock a command
 
 2.5.0
 -----
