@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+2.6.0
+-----
+
+ * added a way to lock a command
+
 2.5.0
 -----
 
