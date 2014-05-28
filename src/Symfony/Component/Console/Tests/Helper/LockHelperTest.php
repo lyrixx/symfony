@@ -28,48 +28,14 @@ class LockHelperTest extends \PHPUnit_Framework_TestCase
     {
         $file = sys_get_temp_dir().'/symfony-test-filesystem.lock';
 
-        $lh = new LockHelper($file);
-        $lh->lock();
+        $l1 = new LockHelper($file);
+        $l2 = new LockHelper($file);
 
-        $this->assertFileExists($file);
+        $this->assertTrue($l1->lock());
+        $this->assertFalse($l2->lock());
+        $l1->unlock();
 
-        $lh->unlock();
-
-        $this->assertFileNotExists($file);
-    }
-
-    public function testIsLockWhenNotLocked()
-    {
-        $file = sys_get_temp_dir().'/symfony-test-filesystem.lock';
-
-        $lh = new LockHelper($file);
-
-        $this->assertFalse($lh->isLocked());
-    }
-
-    public function testIsLockWhenLockedButPidIsDead()
-    {
-        if (defined('PHP_WINDOWS_VERSION_BUILD')) {
-            $this->markTestSkipped('This feature does not work on windows.');
-        }
-
-        $file = sys_get_temp_dir().'/symfony-test-filesystem.lock';
-        // Fake a lock file, with a "dead" pid
-        file_put_contents($file, 999999999);
-
-        $lh = new LockHelper($file);
-
-        $this->assertFalse($lh->isLocked());
-    }
-
-    public function testIsLockWhenLockedButPidIsAlive()
-    {
-        $file = sys_get_temp_dir().'/symfony-test-filesystem.lock';
-        // Fake a lock file, with a "dead" pid
-        file_put_contents($file, getmypid());
-
-        $lh = new LockHelper($file);
-
-        $this->assertTrue($lh->isLocked());
+        $this->assertTrue($l2->lock());
+        $l2->unlock();
     }
 }

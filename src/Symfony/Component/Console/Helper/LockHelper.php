@@ -43,88 +43,39 @@ class LockHelper
         $this->file = $file;
     }
 
-    public function unlock()
-    {
-        if (is_resource($this->handle)) {
-            flock($this->handle, LOCK_UN | LOCK_NB);
-            ftruncate($this->handle, 0);
-            fclose($this->handle);
-            $this->handle = null;
-        }
-
-        if (is_file($this->file)) {
-            unlink($this->file);
-        }
-    }
-
     public function lock()
     {
-        if ($this->isLocked()) {
-            return false;
+        if ($this->handle) {
+            return true;
         }
 
+        set_error_handler('var_dump', 0);
         $this->handle = @fopen($this->file, 'a+');
+        restore_error_handler();
 
-        if (!is_resource($this->handle)) {
+        if (!$this->handle) {
             throw new \RuntimeException(sprintf('Unable to fopen %s.', $this->file));
         }
 
-        $locker = true;
-
-        if (false === flock($this->handle, LOCK_EX | LOCK_NB, $locker)) {
+        // On Windows, even if PHP doc says the contrary,
+        // LOCK_NB works, see https://bugs.php.net/54129
+        if (!flock($this->handle, LOCK_EX | LOCK_NB, $wouldBlock) || $wouldBlock) {
             fclose($this->handle);
+            $this->handle = null;
 
-            throw new \RuntimeException(sprintf('Unable to lock %s.', $this->file));
+            return false;
         }
-
-        ftruncate($this->handle, 0);
-        fwrite($this->handle, (string) getmypid());
-        fflush($this->handle);
-
-        // For windows : unlock then lock shared to allow OTHER processes to
-        // read the file
-        flock($this->handle, LOCK_UN);
-        flock($this->handle, LOCK_SH);
 
         return true;
     }
 
-    private function isLocked()
+    public function unlock()
     {
-        $handle = @fopen($this->file, 'r');
-
-        // the file does not exist
-        if (!is_resource($handle)) {
-            return false;
+        if ($this->handle) {
+            ftruncate($this->handle, 0);
+            flock($this->handle, LOCK_UN | LOCK_NB);
+            fclose($this->handle);
+            $this->handle = null;
         }
-
-        $locker = true;
-        if (false === flock($handle, LOCK_EX | LOCK_NB, $locker)) {
-            // exclusive lock failed, another process is locking
-            fclose($handle);
-
-            return true;
-        }
-
-        flock($handle, LOCK_UN);
-        fclose($handle);
-
-        // lock succeed, anyway, some systems may not support this very well,
-        // let's check for a Pid running
-        $pid = file_get_contents($this->file);
-
-        if (function_exists('posix_kill')) {
-            $running = posix_kill($pid, 0);
-        } elseif (function_exists('exec') && !defined('PHP_WINDOWS_VERSION_BUILD')) {
-            exec(sprintf('kill -0 %d', $pid), $output, $returnValue);
-            $running = 0 === $returnValue;
-        } elseif (function_exists(('exec')) && defined('PHP_WINDOWS_VERSION_BUILD')) {
-            exec(sprintf('tasklist /FI "PID eq %d"', $pid), $output, $returnValue);
-            $running = 0 === $returnValue;
-        } else {
-            $running = false;
-        }
-
-        return $running;
     }
 }
