@@ -6,6 +6,11 @@ use Symfony\Component\Console\Helper\LockHelper;
 
 class LockHelperTest extends \PHPUnit_Framework_TestCase
 {
+    public static function setUpBeforeClass()
+    {
+        require_once __DIR__.'/../Fixtures/TestBlockingLock.php';
+    }
+
     /**
      * @expectedException InvalidArgumentException
      * @expectedExceptionMessage The directory "/a/b/c/d/e" does not exist and could not be created.
@@ -37,5 +42,31 @@ class LockHelperTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($l2->lock());
         $l2->unlock();
+    }
+
+    public function testBlocking()
+    {
+        if (!class_exists('\Thread')) {
+            $this->markTestSkipped('pthreads are not supported.');
+        }
+
+        $file = sys_get_temp_dir().'/symfony-test-filesystem-blocking.lock';
+
+        $lock = new LockHelper($file);
+        $lock->lock();
+
+        $thread = new \TestBlockingLock($file);
+
+        $thread->start();
+
+        $hasLock = $thread->hasLock;
+        $this->assertFalse($hasLock);
+        sleep(1);
+
+        $lock->unlock();
+
+        $thread->join();
+        $hasLock = $thread->hasLock;
+        $this->assertTrue($hasLock);
     }
 }
