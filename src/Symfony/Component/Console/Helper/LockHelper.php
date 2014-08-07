@@ -75,6 +75,7 @@ class LockHelper
         if ($this->handle) {
             flock($this->handle, LOCK_UN | LOCK_NB);
             fclose($this->handle);
+            unlink($this->file);
             $this->handle = null;
         }
     }
