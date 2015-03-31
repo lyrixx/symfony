@@ -1,5 +1,7 @@
 language: php
 
+sudo: false
+
 matrix:
     include:
         - php: 5.3.3
@@ -28,7 +30,13 @@ env:
 before_install:
     - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then git fetch origin "refs/pull/$TRAVIS_PULL_REQUEST/merge"; else git fetch origin "$TRAVIS_BRANCH"; fi;
     - if [[ "$TRAVIS_COMMIT" != `git rev-parse FETCH_HEAD` ]]; then echo "Pull request or branch commit hash has changed, aborting!"; exit 1; fi;
-    - travis_retry sudo apt-get install parallel
+    - mkdir $HOME/parallel
+    - pushd $HOME/parallel
+    - wget https://launchpad.net/ubuntu/+source/parallel/20120422-1/+build/3463319/+files/parallel_20120422-1_all.deb
+    - ar x parallel_20120422-1_all.deb
+    - tar xzf data.tar.gz
+    - export PATH=$HOME/parallel/usr/bin/parallel:$PATH
+    - popd
     - composer self-update
     - if [[ "$TRAVIS_PHP_VERSION" != *"nightly" ]]; then phpenv config-rm xdebug.ini; fi;
     - if [[ "$TRAVIS_PHP_VERSION" != *"nightly" ]]; then echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini; fi;
@@ -36,7 +44,7 @@ before_install:
     - if [[ "$TRAVIS_PHP_VERSION" != *"nightly" ]]; then pecl install -f memcached-2.1.0; fi;
     - if [[ "$TRAVIS_PHP_VERSION" != *"nightly" ]]; then echo "extension = memcache.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini; fi;
     - if [[ "$TRAVIS_PHP_VERSION" != *"nightly" ]]; then php -i; fi;
-    - sudo locale-gen fr_FR.UTF-8 && sudo update-locale
+    - export LC_ALL="C"
     # Set the COMPOSER_ROOT_VERSION to the right version according to the branch being built
     - if [ "$TRAVIS_BRANCH" = "master" ]; then export COMPOSER_ROOT_VERSION=dev-master; else export COMPOSER_ROOT_VERSION="$TRAVIS_BRANCH".x-dev; fi;
 
