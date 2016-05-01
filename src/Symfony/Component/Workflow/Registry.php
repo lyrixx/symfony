@@ -19,13 +19,25 @@ use Symfony\Component\Workflow\Exception\InvalidArgumentException;
  */
 class Registry
 {
+    /**
+     * @var Workflow[]
+     */
     private $workflows = array();
 
-    public function add($workflow, $classname)
+    /**
+     * @param Workflow $workflow
+     * @param string $classname
+     */
+    public function add(Workflow $workflow, $classname)
     {
         $this->workflows[] = array($workflow, $classname);
     }
 
+    /**
+     * @param string $subject
+     * @param string|null $name
+     * @return Workflow
+     */
     public function get($subject, $name = null)
     {
         $matched = null;
@@ -45,6 +57,13 @@ class Registry
         return $matched;
     }
 
+    /**
+     * @param Workflow $workflow
+     * @param string $classname
+     * @param string $subject
+     * @param string $name
+     * @return bool
+     */
     private function supports(Workflow $workflow, $classname, $subject, $name)
     {
         if (!$subject instanceof $classname) {

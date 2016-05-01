@@ -13,6 +13,8 @@ namespace Symfony\Component\Workflow\Dumper;
 
 use Symfony\Component\Workflow\Definition;
 use Symfony\Component\Workflow\Marking;
+use Symfony\Component\Workflow\Place;
+use Symfony\Component\Workflow\Transition;
 
 /**
  * GraphvizDumper dumps a workflow as a graphviz file.
@@ -71,6 +73,7 @@ class GraphvizDumper implements DumperInterface
     {
         $places = array();
 
+        /** @var Place $place */
         foreach ($definition->getPlaces() as $place) {
             $attributes = [];
             if ($place === $definition->getInitialPlace()) {
@@ -80,7 +83,7 @@ class GraphvizDumper implements DumperInterface
                 $attributes['color'] = '#FF0000';
                 $attributes['shape'] = 'doublecircle';
             }
-            $places[$place] = array(
+            $places[$place->getName()] = array(
                 'attributes' => $attributes,
             );
         }
@@ -150,18 +153,21 @@ class GraphvizDumper implements DumperInterface
     {
         $dotEdges = array();
 
+        /** @var Transition $transition */
         foreach ($definition->getTransitions() as $transition) {
+            /** @var Place $from */
             foreach ($transition->getFroms() as $from) {
                 $dotEdges[] = array(
-                    'from' => $from,
+                    'from' => $from->getName(),
                     'to' => $transition->getName(),
                     'direction' => 'from',
                 );
             }
+            /** @var Place $to */
             foreach ($transition->getTos() as $to) {
                 $dotEdges[] = array(
                     'from' => $transition->getName(),
-                    'to' => $to,
+                    'to' => $to->getName(),
                     'direction' => 'to',
                 );
             }

@@ -3,57 +3,49 @@
 namespace Symfony\Component\Workflow\Tests;
 
 use Symfony\Component\Workflow\Definition;
+use Symfony\Component\Workflow\Place;
 use Symfony\Component\Workflow\Transition;
 
 class DefinitionTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @expectedException Symfony\Component\Workflow\Exception\InvalidArgumentException
-     * @expectedExceptionMessage The place "foo.bar" contains invalid characters.
-     */
-    public function testValidateName()
-    {
-        $definition = new Definition();
-        $definition->addPlace('foo.bar');
-    }
 
     public function testAddPlaces()
     {
-        $definition = new Definition();
-        $definition->addPlaces(range('a', 'e'));
+        $places = Place::fromNames(range('a', 'e'));
+        $definition = new Definition($places, []);
 
         $this->assertCount(5, $definition->getPlaces());
 
-        $this->assertSame('a', $definition->getInitialPlace());
+        $this->assertEquals(new Place('a'), $definition->getInitialPlace());
     }
 
     public function testSetInitialPlace()
     {
-        $definition = new Definition();
-        $definition->addPlaces(range('a', 'e'));
+        $places = Place::fromNames(range('a', 'e'));
+        $definition = new Definition($places, []);
 
-        $definition->setInitialPlace('d');
+        $definition->setInitialPlace($places[3]);
 
-        $this->assertSame('d', $definition->getInitialPlace());
+        $this->assertEquals($places[3], $definition->getInitialPlace());
     }
 
     /**
      * @expectedException Symfony\Component\Workflow\Exception\LogicException
      * @expectedExceptionMessage Place "d" cannot be the initial place as it does not exist.
      */
-    public function testsetInitialPlaceAndPlaceIsNotDefined()
+    public function testSetInitialPlaceAndPlaceIsNotDefined()
     {
-        $definition = new Definition();
+        $definition = new Definition([], []);
 
-        $definition->setInitialPlace('d');
+        $definition->setInitialPlace(new Place('d'));
     }
 
     public function testAddTransition()
     {
-        $definition = new Definition();
-        $definition->addPlaces(['a', 'b']);
+        $places = Place::fromNames(['a', 'b']);
 
-        $definition->addTransition($transition = new Transition('name', 'a', 'b'));
+        $transition = new Transition('name', $places[0], $places[1]);
+        $definition = new Definition($places, [$transition]);
 
         $this->assertCount(1, $definition->getTransitions());
         $this->assertSame($transition, $definition->getTransitions()['name']);
@@ -65,10 +57,9 @@ class DefinitionTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddTransitionAndFromPlaceIsNotDefined()
     {
-        $definition = new Definition();
-        $definition->addPlaces(['a', 'b']);
+        $places = Place::fromNames(['a', 'b']);
 
-        $definition->addTransition($transition = new Transition('name', 'c', 'b'));
+        new Definition($places, [new Transition('name', new Place('c'), $places[1])]);
     }
 
     /**
@@ -77,9 +68,8 @@ class DefinitionTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddTransitionAndToPlaceIsNotDefined()
     {
-        $definition = new Definition();
-        $definition->addPlaces(['a', 'b']);
+        $places = Place::fromNames(['a', 'b']);
 
-        $definition->addTransition($transition = new Transition('name', 'a', 'c'));
+        new Definition($places, [new Transition('name', $places[0], new Place('c'))]);
     }
 }

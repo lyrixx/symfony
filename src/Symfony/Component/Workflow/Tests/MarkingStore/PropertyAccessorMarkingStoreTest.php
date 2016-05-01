@@ -19,7 +19,7 @@ class PropertyAccessorMarkingStoreTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf(Marking::class, $marking);
         $this->assertCount(0, $marking->getPlaces());
 
-        $marking->mark('first_place');
+        $marking->markPlaceNamed('first_place');
 
         $markingStore->setMarking($subject, $marking);
 

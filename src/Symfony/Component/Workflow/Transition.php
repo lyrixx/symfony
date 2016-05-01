@@ -19,31 +19,65 @@ use Symfony\Component\Workflow\Exception\InvalidArgumentException;
  */
 class Transition
 {
+    /**
+     * @var string
+     */
     private $name;
+
+    /**
+     * @var Place[]
+     */
     private $froms;
+
+    /**
+     * @var Place[]
+     */
     private $tos;
 
+    /**
+     * Transition constructor.
+     * @param string $name
+     * @param Place|Place[] $froms
+     * @param Place|Place[] $tos
+     */
     public function __construct($name, $froms, $tos)
     {
         if (!preg_match('{^[\w\d_-]+$}', $name)) {
             throw new InvalidArgumentException(sprintf('The transition "%s" contains invalid characters.', $name));
         }
+        
+        if (!is_array($froms)) {
+            $froms = [$froms];
+        }
+
+        if (!is_array($tos)) {
+            $tos = [$tos];
+        }
 
         $this->name = $name;
-        $this->froms = (array) $froms;
-        $this->tos = (array) $tos;
+        $this->froms = $froms;
+        $this->tos = $tos;
     }
 
+    /**
+     * @return string
+     */
     public function getName()
     {
         return $this->name;
     }
 
+    /**
+     * @return Place[]
+     */
     public function getFroms()
     {
         return $this->froms;
     }
 
+    /**
+     * @return Place[]
+     */
     public function getTos()
     {
         return $this->tos;

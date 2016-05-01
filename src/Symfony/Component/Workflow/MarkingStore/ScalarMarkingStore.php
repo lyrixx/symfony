@@ -22,15 +22,31 @@ use Symfony\Component\Workflow\Marking;
  */
 class ScalarMarkingStore implements MarkingStoreInterface, UniqueTransitionOutputInterface
 {
+    /**
+     * @var string
+     */
     private $property;
-    private $propertyAccessor;
 
+    /**
+     * @var PropertyAccessorInterface
+     */
+    private $propertyAccessor;
+    
+    /**
+     * ScalarMarkingStore constructor.
+     * @param string $property
+     * @param PropertyAccessorInterface|null $propertyAccessor
+     */
     public function __construct($property = 'marking', PropertyAccessorInterface $propertyAccessor = null)
     {
         $this->property = $property;
         $this->propertyAccessor = $propertyAccessor ?: PropertyAccess::createPropertyAccessor();
     }
 
+    /**
+     * @param object $subject
+     * @return Marking
+     */
     public function getMarking($subject)
     {
         $place = $this->propertyAccessor->getValue($subject, $this->property);
@@ -42,6 +58,10 @@ class ScalarMarkingStore implements MarkingStoreInterface, UniqueTransitionOutpu
         return new Marking(array($place => true));
     }
 
+    /**
+     * @param object $subject
+     * @param Marking $marking
+     */
     public function setMarking($subject, Marking $marking)
     {
         $this->propertyAccessor->setValue($subject, $this->property, key($marking->getPlaces()));

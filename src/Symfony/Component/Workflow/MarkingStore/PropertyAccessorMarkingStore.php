@@ -22,20 +22,41 @@ use Symfony\Component\Workflow\Marking;
  */
 class PropertyAccessorMarkingStore implements MarkingStoreInterface
 {
+    /**
+     * @var string
+     */
     private $property;
+
+    /**
+     * @var PropertyAccessorInterface
+     */
     private $propertyAccessor;
 
+
+    /**
+     * PropertyAccessorMarkingStore constructor.
+     * @param string $property
+     * @param PropertyAccessorInterface|null $propertyAccessor
+     */
     public function __construct($property = 'marking', PropertyAccessorInterface $propertyAccessor = null)
     {
         $this->property = $property;
         $this->propertyAccessor = $propertyAccessor ?: PropertyAccess::createPropertyAccessor();
     }
 
+    /**
+     * @param object $subject
+     * @return Marking
+     */
     public function getMarking($subject)
     {
         return new Marking($this->propertyAccessor->getValue($subject, $this->property) ?: []);
     }
 
+    /**
+     * @param object $subject
+     * @param Marking $marking
+     */
     public function setMarking($subject, Marking $marking)
     {
         $this->propertyAccessor->setValue($subject, $this->property, $marking->getPlaces());

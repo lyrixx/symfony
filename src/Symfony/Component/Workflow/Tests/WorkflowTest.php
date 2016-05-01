@@ -10,6 +10,7 @@ use Symfony\Component\Workflow\Marking;
 use Symfony\Component\Workflow\MarkingStore\MarkingStoreInterface;
 use Symfony\Component\Workflow\MarkingStore\PropertyAccessorMarkingStore;
 use Symfony\Component\Workflow\MarkingStore\ScalarMarkingStore;
+use Symfony\Component\Workflow\Place;
 use Symfony\Component\Workflow\Transition;
 use Symfony\Component\Workflow\Workflow;
 
@@ -28,11 +29,9 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
 
     public function testConstructorWithUniqueTransitionOutputInterfaceAndSimpleWorkflow()
     {
-        $definition = new Definition();
-
-        $definition->addPlaces(array('a', 'b'));
-
-        $definition->addTransition(new Transition('t1', 'a', 'b'));
+        $places = array(new Place('a'), new Place('b'));
+        $transition = new Transition('t1', new Place('a'), new Place('b'));
+        $definition = new Definition($places, [$transition]);
 
         new Workflow($definition, new ScalarMarkingStore());
     }
@@ -45,7 +44,7 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
     {
         $subject = new \stdClass();
         $subject->marking = null;
-        $workflow = new Workflow(new Definition(), $this->getMock(MarkingStoreInterface::class));
+        $workflow = new Workflow(new Definition([], []), $this->createMock(MarkingStoreInterface::class));
 
         $workflow->getMarking($subject);
     }
@@ -58,7 +57,7 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
     {
         $subject = new \stdClass();
         $subject->marking = null;
-        $workflow = new Workflow(new Definition(), new PropertyAccessorMarkingStore());
+        $workflow = new Workflow(new Definition([], []), new PropertyAccessorMarkingStore());
 
         $workflow->getMarking($subject);
     }
@@ -72,7 +71,7 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
         $subject = new \stdClass();
         $subject->marking = null;
         $subject->marking = ['nope' => true];
-        $workflow = new Workflow(new Definition(), new PropertyAccessorMarkingStore());
+        $workflow = new Workflow(new Definition([], []), new PropertyAccessorMarkingStore());
 
         $workflow->getMarking($subject);
     }
@@ -87,7 +86,7 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
         $marking = $workflow->getMarking($subject);
 
         $this->assertInstanceOf(Marking::class, $marking);
-        $this->assertTrue($marking->has('a'));
+        $this->assertTrue($marking->has(new Place('a')));
         $this->assertSame(['a' => 1], $subject->marking);
     }
 
@@ -102,8 +101,8 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
         $marking = $workflow->getMarking($subject);
 
         $this->assertInstanceOf(Marking::class, $marking);
-        $this->assertTrue($marking->has('b'));
-        $this->assertTrue($marking->has('c'));
+        $this->assertTrue($marking->has(new Place('b')));
+        $this->assertTrue($marking->has(new Place('c')));
     }
 
     /**
@@ -167,9 +166,9 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
         $marking = $workflow->apply($subject, 't1');
 
         $this->assertInstanceOf(Marking::class, $marking);
-        $this->assertFalse($marking->has('a'));
-        $this->assertTrue($marking->has('b'));
-        $this->assertTrue($marking->has('c'));
+        $this->assertFalse($marking->has(new Place('a')));
+        $this->assertTrue($marking->has(new Place('b')));
+        $this->assertTrue($marking->has(new Place('c')));
     }
 
     public function testApplyWithEventDispatcher()
@@ -231,18 +230,19 @@ class WorkflowTest extends \PHPUnit_Framework_TestCase
 
     private function createComplexWorkflow()
     {
-        $definition = new Definition();
 
-        $definition->addPlaces(range('a', 'g'));
+        $places = Place::fromNames(range('a', 'g'));
 
-        $definition->addTransition(new Transition('t1', 'a',        ['b', 'c']));
-        $definition->addTransition(new Transition('t2', ['b', 'c'],  'd'));
-        $definition->addTransition(new Transition('t3', 'd',         'e'));
-        $definition->addTransition(new Transition('t4', 'd',         'f'));
-        $definition->addTransition(new Transition('t5', 'e',         'g'));
-        $definition->addTransition(new Transition('t6', 'f',         'g'));
+        $transitions = [
+            new Transition('t1', $places[0], [$places[1], $places[2]]),
+            new Transition('t2', [$places[1], $places[2]], $places[3]),
+            new Transition('t3', $places[3], $places[4]),
+            new Transition('t4', $places[3], $places[5]),
+            new Transition('t5', $places[4], $places[6]),
+            new Transition('t6', $places[5], $places[6]),
+        ];
 
-        return $definition;
+        return new Definition($places, $transitions);
 
         // The graph looks like:
         //

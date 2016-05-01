@@ -21,10 +21,27 @@ use Symfony\Component\Workflow\Transition;
  */
 class Event extends BaseEvent
 {
+    /**
+     * @var object
+     */
     private $subject;
+
+    /**
+     * @var Marking
+     */
     private $marking;
+
+    /**
+     * @var Transition
+     */
     private $transition;
 
+    /**
+     * Event constructor.
+     * @param mixed $subject
+     * @param Marking $marking
+     * @param Transition $transition
+     */
     public function __construct($subject, Marking $marking, Transition $transition)
     {
         $this->subject = $subject;
@@ -32,16 +49,25 @@ class Event extends BaseEvent
         $this->transition = $transition;
     }
 
+    /**
+     * @return Marking
+     */
     public function getMarking()
     {
         return $this->marking;
     }
 
+    /**
+     * @return mixed
+     */
     public function getSubject()
     {
         return $this->subject;
     }
 
+    /**
+     * @return Transition
+     */
     public function getTransition()
     {
         return $this->transition;

@@ -7,17 +7,25 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Workflow\Definition;
 use Symfony\Component\Workflow\EventListener\AuditTrailListener;
 use Symfony\Component\Workflow\MarkingStore\PropertyAccessorMarkingStore;
+use Symfony\Component\Workflow\Place;
 use Symfony\Component\Workflow\Transition;
 use Symfony\Component\Workflow\Workflow;
 
 class AuditTrailListenerTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testItWorks()
     {
-        $definition = new Definition();
-        $definition->addPlaces(['a', 'b']);
-        $definition->addTransition(new Transition('t1', 'a', 'b'));
-        $definition->addTransition(new Transition('t2', 'a', 'b'));
+        $places = Place::fromNames(['a', 'b']);
+
+        $a = new Place('a');
+        $b = new Place('b');
+        $transitions = [
+            new Transition('t1', $a, $b),
+            new Transition('t2', $a, $b),
+        ];
+
+        $definition = new Definition($places, $transitions);
 
         $object = new \stdClass();
         $object->marking = null;

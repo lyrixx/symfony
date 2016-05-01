@@ -52,6 +52,8 @@ class Workflow
      * @param object $subject A subject
      *
      * @return Marking The Marking
+     *
+     * @throws LogicException
      */
     public function getMarking($subject)
     {
@@ -62,8 +64,8 @@ class Workflow
         }
 
         // check if the subject is already in the workflow
-        if (!$marking->getPlaces()) {
-            if (!$this->definition->getInitialPlace()) {
+        if (empty($marking->getPlaces())) {
+            if ($this->definition->getInitialPlace() === null) {
                 throw new LogicException(sprintf('The Marking is empty and there is no initial place for workflow "%s".', $this->name));
             }
             $marking->mark($this->definition->getInitialPlace());
@@ -71,9 +73,9 @@ class Workflow
 
         // check that the subject has a known place
         $places = $this->definition->getPlaces();
-        foreach ($marking->getPlaces() as $place => $nbToken) {
-            if (!isset($places[$place])) {
-                $message = sprintf('Place "%s" is not valid for workflow "%s".', $place, $this->name);
+        foreach ($marking->getPlaces() as $placeName => $nbToken) {
+            if (!isset($places[$placeName])) {
+                $message = sprintf('Place "%s" is not valid for workflow "%s".', $placeName, $this->name);
                 if (!$places) {
                     $message .= ' It seems you forgot to add places to the current workflow.';
                 }

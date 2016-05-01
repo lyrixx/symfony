@@ -18,9 +18,9 @@ class RegistryTest extends \PHPUnit_Framework_TestCase
 
         $this->registry = new Registry();
 
-        $this->registry->add(new Workflow(new Definition(), $this->getMock(MarkingStoreInterface::class), $this->getMock(EventDispatcherInterface::class), 'workflow1'), Subject1::class);
-        $this->registry->add(new Workflow(new Definition(), $this->getMock(MarkingStoreInterface::class), $this->getMock(EventDispatcherInterface::class), 'workflow2'), Subject2::class);
-        $this->registry->add(new Workflow(new Definition(), $this->getMock(MarkingStoreInterface::class), $this->getMock(EventDispatcherInterface::class), 'workflow3'), Subject2::class);
+        $this->registry->add(new Workflow(new Definition([], []), $this->createMock(MarkingStoreInterface::class), $this->createMock(EventDispatcherInterface::class), 'workflow1'), Subject1::class);
+        $this->registry->add(new Workflow(new Definition([], []), $this->createMock(MarkingStoreInterface::class), $this->createMock(EventDispatcherInterface::class), 'workflow2'), Subject2::class);
+        $this->registry->add(new Workflow(new Definition([], []), $this->createMock(MarkingStoreInterface::class), $this->createMock(EventDispatcherInterface::class), 'workflow3'), Subject2::class);
     }
 
     protected function tearDown()
