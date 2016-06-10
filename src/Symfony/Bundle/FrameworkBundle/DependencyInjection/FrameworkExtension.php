@@ -361,7 +361,7 @@ class FrameworkExtension extends Extension
 
         $loader->load('workflow.xml');
 
-        $registryDefintion = $container->getDefinition('workflow.registry');
+        $registryDefinition = $container->getDefinition('workflow.registry');
 
         foreach ($workflows as $name => $workflow) {
             $definitionDefinition = new Definition('Symfony\Component\Workflow\Definition');
@@ -389,7 +389,7 @@ class FrameworkExtension extends Extension
             $container->setDefinition($workflowId, $workflowDefinition);
 
             foreach ($workflow['supports'] as $supportedClass) {
-                $registryDefintion->addMethodCall('add', [new Reference($workflowId), $supportedClass]);
+                $registryDefinition->addMethodCall('add', [new Reference($workflowId), $supportedClass]);
             }
         }
     }
