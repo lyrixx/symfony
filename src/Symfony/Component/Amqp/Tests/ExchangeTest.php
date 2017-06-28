@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Symfony\Component\Amqp\Tests;
 
 use PHPUnit\Framework\TestCase;
@@ -18,7 +27,9 @@ class ExchangeTest extends TestCase
         );
     }
 
-    /** @dataProvider getUri */
+    /**
+     * @dataProvider getUri
+     */
     public function testCreateFromUri($qsa, $name, $type, $flags)
     {
         $exchange = Exchange::createFromUri(getenv('RABBITMQ_URL').'?'.$qsa);
@@ -30,12 +41,12 @@ class ExchangeTest extends TestCase
     }
 
     /**
-     * @expectedException \LogicException
+     * @expectedException \Symfony\Component\Amqp\Exception\LogicException
      * @expectedExceptionMessage The "exchange_name" must be part of the query string.
      */
     public function testCreateFromUriWithInvalidUri()
     {
-        $exchange = Exchange::createFromUri(getenv('RABBITMQ_URL').'/?type=fanout');
+        Exchange::createFromUri(getenv('RABBITMQ_URL').'/?type=fanout');
     }
 
     public function testPublish()
@@ -53,7 +64,8 @@ class ExchangeTest extends TestCase
         $exchange->publish($message, $name, \AMQP_MANDATORY, array('content_type' => 'application/json'));
 
         $this->assertQueueSize(1, $name);
-        $message = $this->assertNextMessageBody($message, $name);
-        $this->assertSame('application/json', $message->getContentType());
+        $this->assertNextMessageBody($message, $name, function (\AMQPEnvelope $msg) {
+            $this->assertSame('application/json', $msg->getContentType());
+        });
     }
 }

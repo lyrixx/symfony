@@ -1,9 +1,20 @@
 <?php
 
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Symfony\Component\Amqp\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Amqp\Broker;
+use Symfony\Component\Amqp\Exception\InvalidArgumentException;
+use Symfony\Component\Amqp\Exception\NonRetryableException;
 use Symfony\Component\Amqp\Exchange;
 use Symfony\Component\Amqp\Queue;
 use Symfony\Component\Amqp\RetryStrategy\ConstantRetryStrategy;
@@ -15,7 +26,7 @@ class BrokerTest extends TestCase
     use AmqpTestTrait;
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \Symfony\Component\Amqp\Exception\InvalidArgumentException
      * @expectedExceptionMessage The connection should be a DSN or an instance of AMQPConnection.
      */
     public function testConstructorWithInvalidConnection()
@@ -50,6 +61,7 @@ class BrokerTest extends TestCase
         $this->assertTrue($broker->isConnected());
 
         $channel = $broker->getChannel();
+
         $this->assertInstanceOf(\AMQPChannel::class, $channel);
         $this->assertTrue($channel->isConnected());
     }
@@ -64,7 +76,7 @@ class BrokerTest extends TestCase
 
             $this->fail('The configuration should not be valid');
         } catch (\Exception $e) {
-            $this->assertInstanceOf(\InvalidArgumentException::class, $e);
+            $this->assertInstanceOf(InvalidArgumentException::class, $e);
             $this->assertSame($expectedMessage, $e->getMessage());
         }
     }
@@ -72,7 +84,7 @@ class BrokerTest extends TestCase
     public function provideInvalidConfiguration()
     {
         yield 'missing queue name' => array(
-            'The key "name" key is required to configure a Queue.',
+            'The key "name" is required to configure a Queue.',
             array(
                 array(
                     'arguments' => array(),
@@ -95,7 +107,7 @@ class BrokerTest extends TestCase
         );
 
         yield 'missing exchange name' => array(
-            'The key "name" key is required to configure an Exchange.',
+            'The key "name" is required to configure an Exchange.',
             array(),
             array(
                 array(
@@ -166,6 +178,7 @@ class BrokerTest extends TestCase
         $this->assertTrue($broker->hasRetryStrategy('test_broker.configure.constant'));
 
         $queueB = $broker->getQueue('test_broker.configure.exponential');
+
         $this->assertInstanceOf(Queue::class, $queueB);
         $this->assertSame('test_broker.configure.exponential', $queueB->getName());
         $this->assertInstanceOf(ExponentialRetryStrategy::class, $queueB->getRetryStrategy());
@@ -199,6 +212,7 @@ class BrokerTest extends TestCase
         ));
 
         $exchange = $broker->getExchange('test_broker.get_exchange_from_configuration.exchange_1');
+
         $this->assertInstanceOf(Exchange::class, $exchange);
         $this->assertSame('test_broker.get_exchange_from_configuration.exchange_1', $exchange->getName());
         $this->assertSame('fanout', $exchange->getType());
@@ -208,6 +222,7 @@ class BrokerTest extends TestCase
         ));
 
         $exchange = $broker->getExchange('test_broker.get_exchange_from_configuration.exchange_2');
+
         $this->assertInstanceOf(Exchange::class, $exchange);
         $this->assertSame('test_broker.get_exchange_from_configuration.exchange_2', $exchange->getName());
         $this->assertSame('fanout', $exchange->getType());
@@ -219,7 +234,7 @@ class BrokerTest extends TestCase
         $exchange = $this->createExchange($name);
         $broker = $this->createBroker();
 
-        $broker->setExchange($exchange);
+        $broker->addExchange($exchange);
 
         $newExchange = $broker->getExchange($name);
 
@@ -227,10 +242,10 @@ class BrokerTest extends TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \Symfony\Component\Amqp\Exception\InvalidArgumentException
      * @expectedExceptionMessage Exchange "404" does not exist.
      */
-    public function testGetExchangeWithUnknowExchange()
+    public function testGetExchangeWithUnknownExchange()
     {
         $this->createBroker()->getExchange('404');
     }
@@ -262,12 +277,14 @@ class BrokerTest extends TestCase
         ));
 
         $queue = $broker->getQueue('test_broker.get_queue_from_configuration');
+
         $this->assertInstanceOf(Queue::class, $queue);
         $this->assertSame('test_broker.get_queue_from_configuration', $queue->getName());
         $this->assertSame(\AMQP_AUTODELETE, $queue->getFlags());
 
         $broker->get('test_broker.get_queue_from_configuration_2');
         $queue = $broker->getQueue('test_broker.get_queue_from_configuration_2');
+
         $this->assertInstanceOf(Queue::class, $queue);
         $this->assertSame('test_broker.get_queue_from_configuration_2', $queue->getName());
         $this->assertSame(\AMQP_AUTODELETE, $queue->getFlags());
@@ -279,7 +296,7 @@ class BrokerTest extends TestCase
         $queue = new Queue($this->createChannel(), $name);
         $broker = $this->createBroker();
 
-        $broker->setQueue($queue);
+        $broker->addQueue($queue);
 
         $newQueue = $broker->getQueue($name);
 
@@ -287,10 +304,10 @@ class BrokerTest extends TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \Symfony\Component\Amqp\Exception\InvalidArgumentException
      * @expectedExceptionMessage Queue "404" does not exist.
      */
-    public function testGetQueueWithUnknowQueue()
+    public function testGetQueueWithUnknownQueue()
     {
         $this->createBroker()->getQueue('404');
     }
@@ -300,9 +317,11 @@ class BrokerTest extends TestCase
         $broker = $this->createBroker();
 
         $broker->createQueue('test_broker.has_retry_strategy_no');
+
         $this->assertFalse($broker->hasRetryStrategy('test_broker.has_retry_strategy_no'));
 
         $broker->createQueue('test_broker.has_retry_strategy_yes', array('retry_strategy' => new ConstantRetryStrategy(2)));
+
         $this->assertTrue($broker->hasRetryStrategy('test_broker.has_retry_strategy_yes'));
     }
 
@@ -314,17 +333,19 @@ class BrokerTest extends TestCase
         $broker->publish('test_broker.publish_default', 'payload-1');
 
         $exchange = $broker->getExchange('symfony.default');
+
         $this->assertInstanceOf(Exchange::class, $exchange);
         $this->assertSame('symfony.default', $exchange->getName());
 
         $queue = $broker->getQueue('test_broker.publish_default');
+
         $this->assertInstanceOf(Queue::class, $queue);
         $this->assertSame('test_broker.publish_default', $queue->getName());
 
         $this->assertNextMessageBody('payload-1', 'test_broker.publish_default');
     }
 
-    public function testPublishInCustomExhange()
+    public function testPublishInCustomExchange()
     {
         $this->emptyQueue('test_broker.publish_custom_exchange');
 
@@ -370,7 +391,7 @@ class BrokerTest extends TestCase
             )
         ;
 
-        $broker->setExchange($exchange);
+        $broker->addExchange($exchange);
 
         $broker->publish('test_broker.publish_flags', 'payload', array(
             'delivery_mode' => 1,
@@ -464,7 +485,9 @@ class BrokerTest extends TestCase
         yield 'with a custom exchange' => ['foobar'];
     }
 
-    /** @dataProvider provideExchangeTests */
+    /**
+     * @dataProvider provideExchangeTests
+     */
     public function testDelay($exchange)
     {
         $broker = $this->createBroker();
@@ -515,7 +538,7 @@ class BrokerTest extends TestCase
         usleep(100);
 
         $consumed = false;
-        $msg = $broker->consume('test_broker.consume', function ($msg) use (&$consumed) {
+        $broker->consume('test_broker.consume', function (\AMQPEnvelope $msg) use (&$consumed) {
             $consumed = true;
             $this->assertInstanceOf(\AMQPEnvelope::class, $msg);
             $this->assertSame('payload-42', $msg->getBody());
@@ -535,11 +558,9 @@ class BrokerTest extends TestCase
         usleep(100);
 
         $msg = $broker->get('test_broker.ack');
+
         $broker->ack($msg);
-
         $broker->disconnect();
-
-        $broker = $this->createBroker();
 
         $this->assertQueueSize(0, 'test_broker.ack');
     }
@@ -554,11 +575,9 @@ class BrokerTest extends TestCase
         usleep(100);
 
         $msg = $broker->get('test_broker.nack');
+
         $broker->nack($msg);
-
         $broker->disconnect();
-
-        $broker = $this->createBroker();
 
         $this->assertQueueSize(0, 'test_broker.nack');
     }
@@ -573,18 +592,16 @@ class BrokerTest extends TestCase
         usleep(100);
 
         $msg = $broker->get('test_broker.nack_and_requeue');
+
         $broker->nack($msg, \AMQP_REQUEUE);
-
         $broker->disconnect();
-
-        $broker = $this->createBroker();
 
         $this->assertQueueSize(1, 'test_broker.nack_and_requeue');
         $this->assertNextMessageBody('payload-42', 'test_broker.nack_and_requeue');
     }
 
     /**
-     * @expectedException \LogicException
+     * @expectedException \Symfony\Component\Amqp\Exception\LogicException
      * @expectedExceptionMessage The queue "test_broker.no_retry" has no retry strategy
      */
     public function testRetryWhenRSIsNotDefined()
@@ -601,7 +618,9 @@ class BrokerTest extends TestCase
         $broker->retry($msg);
     }
 
-    /** @dataProvider provideExchangeTests */
+    /**
+     * @dataProvider provideExchangeTests
+     */
     public function testRetry($exchange)
     {
         $broker = $this->createBroker();
@@ -617,41 +636,47 @@ class BrokerTest extends TestCase
         ));
         usleep(100);
 
-        $msg = $this->assertNextMessageBody('payload-42', 'test_broker.retry');
-        $this->assertFalse($msg->getHeader('retries'));
+        $this->assertNextMessageBody('payload-42', 'test_broker.retry', function (\AMQPEnvelope $msg) use ($broker) {
+            $this->assertFalse($msg->getHeader('retries'));
 
-        $broker->retry($msg, null, 'a message');
+            $broker->retry($msg, null, 'a message');
+        });
 
         $this->assertQueueSize(0, 'test_broker.retry');
         usleep(1000100);
 
         $this->assertQueueSize(1, 'test_broker.retry');
-        $msg = $this->assertNextMessageBody('payload-42', 'test_broker.retry');
-        $this->assertSame('a message', $msg->getHeader('retry-message'));
-        $this->assertSame(1, $msg->getHeader('retries'));
+        $this->assertNextMessageBody('payload-42', 'test_broker.retry', function (\AMQPEnvelope $msg) use ($broker) {
+            $this->assertSame('a message', $msg->getHeader('retry-message'));
+            $this->assertSame(1, $msg->getHeader('retries'));
 
-        $broker->retry($msg);
-        $this->assertQueueSize(0, 'test_broker.retry');
-        usleep(1000100);
-
-        $this->assertQueueSize(1, 'test_broker.retry');
-        $msg = $this->assertNextMessageBody('payload-42', 'test_broker.retry');
-        $this->assertSame(2, $msg->getHeader('retries'));
-        $this->assertSame('a message', $msg->getHeader('retry-message'));
-
-        try {
             $broker->retry($msg);
+        });
 
-            $this->fail('We should reach NonRetryable limit.');
-        } catch (\Exception $e) {
-            $this->assertInstanceOf('Symfony\Component\Amqp\Exception\NonRetryableException', $e);
-            $this->assertSame('The message has been retried too many times (2).', $e->getMessage());
-            $this->assertSame($rs, $e->getRetryStrategy());
-            $this->assertSame($msg, $e->getEnvelope());
-        }
+        $this->assertQueueSize(0, 'test_broker.retry');
+        usleep(1000100);
+
+        $this->assertQueueSize(1, 'test_broker.retry');
+        $this->assertNextMessageBody('payload-42', 'test_broker.retry', function (\AMQPEnvelope $msg) use ($broker, $rs) {
+            $this->assertSame(2, $msg->getHeader('retries'));
+            $this->assertSame('a message', $msg->getHeader('retry-message'));
+
+            try {
+                $broker->retry($msg);
+
+                $this->fail('We should reach NonRetryable limit.');
+            } catch (\Exception $e) {
+                $this->assertInstanceOf(NonRetryableException::class, $e);
+                $this->assertSame('The message has been retried too many times (2).', $e->getMessage());
+                $this->assertSame($rs, $e->getRetryStrategy());
+                $this->assertSame($msg, $e->getEnvelope());
+            }
+        });
     }
 
-    /** @dataProvider provideExchangeTests */
+    /**
+     * @dataProvider provideExchangeTests
+     */
     public function testRetryWithSpecialBinding($exchange)
     {
         $broker = $this->createBroker();
@@ -677,39 +702,44 @@ class BrokerTest extends TestCase
         $this->assertQueueSize(1, 'test_broker.retry_finished.step_1');
         $this->assertQueueSize(1, 'test_broker.retry_finished.step_2');
 
-        $msg = $this->assertNextMessageBody('payload-42', 'test_broker.retry_finished.step_1');
-        $this->assertFalse($msg->getHeader('retries'));
+        $this->assertNextMessageBody('payload-42', 'test_broker.retry_finished.step_1', function (\AMQPEnvelope $msg) use ($broker) {
+            $this->assertFalse($msg->getHeader('retries'));
 
-        $broker->retry($msg, 'test_broker.retry_finished.step_1');
-        $this->assertQueueSize(0, 'test_broker.retry_finished.step_1');
-        $this->assertQueueSize(1, 'test_broker.retry_finished.step_2');
-        usleep(1000100);
-
-        $this->assertQueueSize(1, 'test_broker.retry_finished.step_1');
-        $msg = $this->assertNextMessageBody('payload-42', 'test_broker.retry_finished.step_1');
-        $this->assertSame(1, $msg->getHeader('retries'));
-
-        $broker->retry($msg, 'test_broker.retry_finished.step_1');
-        $this->assertQueueSize(0, 'test_broker.retry_finished.step_1');
-        $this->assertQueueSize(1, 'test_broker.retry_finished.step_2');
-        usleep(1000100);
-
-        $this->assertQueueSize(1, 'test_broker.retry_finished.step_1');
-        $msg = $this->assertNextMessageBody('payload-42', 'test_broker.retry_finished.step_1');
-        $this->assertSame(2, $msg->getHeader('retries'));
-
-        try {
             $broker->retry($msg, 'test_broker.retry_finished.step_1');
 
-            $this->fail('We should reach NonRetryable limit.');
-        } catch (\Exception $e) {
-            $this->assertInstanceOf('Symfony\Component\Amqp\Exception\NonRetryableException', $e);
-            $this->assertSame('The message has been retried too many times (2).', $e->getMessage());
-            $this->assertSame($msg, $e->getEnvelope());
-        }
+            $this->assertQueueSize(0, 'test_broker.retry_finished.step_1');
+            $this->assertQueueSize(1, 'test_broker.retry_finished.step_2');
+            usleep(1000100);
 
-        $this->assertQueueSize(0, 'test_broker.retry_finished.step_1');
-        $this->assertQueueSize(1, 'test_broker.retry_finished.step_2');
+            $this->assertQueueSize(1, 'test_broker.retry_finished.step_1');
+            $this->assertNextMessageBody('payload-42', 'test_broker.retry_finished.step_1');
+
+            $this->assertSame(1, $msg->getHeader('retries'));
+
+            $broker->retry($msg, 'test_broker.retry_finished.step_1');
+
+            $this->assertQueueSize(0, 'test_broker.retry_finished.step_1');
+            $this->assertQueueSize(1, 'test_broker.retry_finished.step_2');
+            usleep(1000100);
+
+            $this->assertQueueSize(1, 'test_broker.retry_finished.step_1');
+        });
+        $this->assertNextMessageBody('payload-42', 'test_broker.retry_finished.step_1', function (\AMQPEnvelope $msg) use ($broker) {
+            $this->assertSame(2, $msg->getHeader('retries'));
+
+            try {
+                $broker->retry($msg, 'test_broker.retry_finished.step_1');
+
+                $this->fail('We should reach NonRetryable limit.');
+            } catch (\Exception $e) {
+                $this->assertInstanceOf('Symfony\Component\Amqp\Exception\NonRetryableException', $e);
+                $this->assertSame('The message has been retried too many times (2).', $e->getMessage());
+                $this->assertSame($msg, $e->getEnvelope());
+            }
+
+            $this->assertQueueSize(0, 'test_broker.retry_finished.step_1');
+            $this->assertQueueSize(1, 'test_broker.retry_finished.step_2');
+        });
     }
 
     public function testMove()
@@ -728,7 +758,9 @@ class BrokerTest extends TestCase
         $broker->move($message, 'test_broker.move.to');
 
         $this->assertQueueSize(1, 'test_broker.move.to');
+
         $message = $broker->get('test_broker.move.to', \AMQP_AUTOACK);
+
         $this->assertSame('payload-42', $message->getBody());
         $this->assertSame('bar', $message->getHeader('foo'));
         $this->assertSame('app', $message->getAppId());
@@ -750,7 +782,9 @@ class BrokerTest extends TestCase
         $broker->moveToDeadLetter($message);
 
         $this->assertQueueSize(1, 'test_broker.move_to_dl.dead');
+
         $message = $broker->get('test_broker.move_to_dl.dead', \AMQP_AUTOACK);
+
         $this->assertSame('payload-42', $message->getBody());
         $this->assertSame('bar', $message->getHeader('foo'));
         $this->assertSame('app', $message->getAppId());

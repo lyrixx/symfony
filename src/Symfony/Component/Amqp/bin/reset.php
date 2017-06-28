@@ -1,6 +1,15 @@
 #!/usr/bin/env php
 <?php
 
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 if (file_exists($autoload = __DIR__.'/../vendor/autoload.php')) {
     require $autoload;
 } elseif (file_exists($autoload = __DIR__.'/../../../../../vendor/autoload.php')) {
@@ -18,8 +27,8 @@ if (!$url) {
 }
 
 if (!isset($argv[1]) || 'force' !== $argv[1]) {
-    echo "You are going to user $url\n";
-    echo 'Do You confirm? [Y/n]';
+    echo "You are going to use $url\n";
+    echo 'Do you confirm? [Y/n]';
     $confirmation = strtolower(trim(fgets(STDIN))) ?: 'y';
     if (0 === strpos($confirmation, 'n')) {
         echo "Aborted !\n";

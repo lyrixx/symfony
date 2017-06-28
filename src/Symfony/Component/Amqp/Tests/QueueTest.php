@@ -1,10 +1,18 @@
 <?php
 
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Symfony\Component\Amqp\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Amqp\Broker;
-use Symfony\Component\Amqp\Exchange;
 use Symfony\Component\Amqp\Queue;
 use Symfony\Component\Amqp\RetryStrategy\ConstantRetryStrategy;
 use Symfony\Component\Amqp\Test\AmqpTestTrait;
@@ -111,12 +119,12 @@ class QueueTest extends TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \Symfony\Component\Amqp\Exception\InvalidArgumentException
      * @expectedExceptionMessage "routing_keys" option should be a string, false, null or an array of string, "object" given.
      */
     public function testInvalidRoutingKeys()
     {
-        $queue = new Queue($this->channel, 'test_queue.binding', array(
+        new Queue($this->channel, 'test_queue.binding', array(
             'routing_keys' => new \stdClass(),
         ));
     }

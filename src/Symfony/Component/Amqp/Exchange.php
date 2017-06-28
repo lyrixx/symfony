@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Amqp;
 
+use Symfony\Component\Amqp\Exception\LogicException;
+
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Grégoire Pineau <lyrixx@lyrixx.info>
@@ -18,12 +20,14 @@ namespace Symfony\Component\Amqp;
 class Exchange extends \AMQPExchange
 {
     /**
-     * Constructor.
-     *
      * Special arguments:
      *
      *  * flags: if set, setFlags() will be called with its value
      *  * type: the queue type (set by setType())
+     *
+     * @param \AMQPChannel $channel
+     * @param string       $name
+     * @param array        $arguments
      */
     public function __construct(\AMQPChannel $channel, $name, array $arguments = array())
     {
@@ -55,7 +59,7 @@ class Exchange extends \AMQPExchange
     }
 
     /**
-     * Creates an exchange based on a URI.
+     * Creates an Exchange based on a URI.
      *
      * The query string arguments will be used as arguments for the exchange
      * creation.
@@ -64,7 +68,9 @@ class Exchange extends \AMQPExchange
      *
      * * exchange_name: The name of the exchange to create
      *
-     * amqp://guest:guest@localhost:5672/vhost?exchange_name=logs&type=fanout
+     * @param string $uri Example: amqp://guest:guest@localhost:5672/vhost?exchange_name=logs&type=fanout
+     *
+     * @return Exchange
      */
     public static function createFromUri($uri)
     {
@@ -73,7 +79,7 @@ class Exchange extends \AMQPExchange
         parse_str(parse_url($uri, PHP_URL_QUERY), $arguments);
 
         if (!isset($arguments['exchange_name'])) {
-            throw new \LogicException('The "exchange_name" must be part of the query string.');
+            throw new LogicException('The "exchange_name" must be part of the query string.');
         }
         $name = $arguments['exchange_name'];
         unset($arguments['exchange_name']);
@@ -81,6 +87,14 @@ class Exchange extends \AMQPExchange
         return $broker->createExchange($name, $arguments);
     }
 
+    /**
+     * @param string      $message
+     * @param string|null $routingKey
+     * @param int         $flags
+     * @param array       $attributes
+     *
+     * @return bool
+     */
     public function publish($message, $routingKey = null, $flags = \AMQP_MANDATORY, array $attributes = array())
     {
         $attributes = array_merge(array(

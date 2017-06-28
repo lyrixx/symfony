@@ -17,7 +17,17 @@ namespace Symfony\Component\Amqp\RetryStrategy;
  */
 interface RetryStrategyInterface
 {
+    /**
+     * @param \AMQPEnvelope $msg
+     *
+     * @return bool
+     */
     public function isRetryable(\AMQPEnvelope $msg);
 
+    /**
+     * @param \AMQPEnvelope $msg
+     *
+     * @return int
+     */
     public function getWaitingTime(\AMQPEnvelope $msg);
 }
