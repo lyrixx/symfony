@@ -20,7 +20,13 @@ interface LoopInterface
 
     public function stop();
 
+    /**
+     * @return int
+     */
     public function getStartedAt();
 
+    /**
+     * @return string
+     */
     public function getName();
 }

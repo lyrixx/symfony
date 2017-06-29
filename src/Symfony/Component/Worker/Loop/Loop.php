@@ -20,7 +20,7 @@ use Symfony\Component\Worker\Router\RouterInterface;
 /**
  * @author Grégoire Pineau <lyrixx@lyrixx.info>
  */
-class Loop implements LoopInterface, ConfigurableLoopInterface
+class Loop implements ConfigurableLoopInterface
 {
     private $router;
     private $eventDispatcher;
@@ -76,7 +76,7 @@ class Loop implements LoopInterface, ConfigurableLoopInterface
                 return;
             }
 
-            $this->dispatch(LoopEvents::WAKEUP);
+            $this->dispatch(LoopEvents::WAKE_UP);
 
             while (false !== $messageCollection = $this->router->fetchMessage()) {
                 if (!$messageCollection instanceof MessageCollection) {
@@ -126,7 +126,7 @@ class Loop implements LoopInterface, ConfigurableLoopInterface
         }
 
         if (null !== $this->logger) {
-            $this->logger->error('Worker {worker} errored, shutting down. ({message})', array(
+            $this->logger->error('Worker {worker} has errored, shutting down. ({message})', array(
                 'exception' => $e,
                 'worker' => $this->name,
                 'message' => $e->getMessage(),
@@ -151,16 +151,25 @@ class Loop implements LoopInterface, ConfigurableLoopInterface
         $this->stopped = true;
     }
 
+    /**
+     * @return int
+     */
     public function getStartedAt()
     {
         return $this->startedAt;
     }
 
+    /**
+     * @return string
+     */
     public function getName()
     {
         return $this->name;
     }
 
+    /**
+     * @param string $name
+     */
     public function setName($name)
     {
         $this->name = $name;

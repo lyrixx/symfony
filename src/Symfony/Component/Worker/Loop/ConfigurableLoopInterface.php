@@ -14,7 +14,7 @@ namespace Symfony\Component\Worker\Loop;
 /**
  * @author Grégoire Pineau <lyrixx@lyrixx.info>
  */
-interface ConfigurableLoopInterface
+interface ConfigurableLoopInterface extends LoopInterface
 {
     public function setName($name);
 }

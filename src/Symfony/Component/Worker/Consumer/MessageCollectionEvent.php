@@ -26,6 +26,9 @@ class MessageCollectionEvent extends Event
         $this->messageCollection = $messageCollection;
     }
 
+    /**
+     * @return MessageCollection
+     */
     public function getMessageCollection()
     {
         return $this->messageCollection;

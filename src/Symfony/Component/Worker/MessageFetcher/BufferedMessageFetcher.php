@@ -33,6 +33,9 @@ class BufferedMessageFetcher implements MessageFetcherInterface
         $this->messageCollections = array();
     }
 
+    /**
+     * @return MessageCollection|bool A collection of messages, false otherwise
+     */
     public function fetchMessage()
     {
         $bufferSize = count($this->messageCollections);

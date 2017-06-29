@@ -57,7 +57,7 @@ class LoopTest extends TestCase
         $expectedEvents = array(
             'worker.run',
             'worker.health_check',
-            'worker.wakeup',
+            'worker.wake_up',
             'worker.stop',
         );
 
@@ -86,9 +86,9 @@ class LoopTest extends TestCase
         $expectedEvents = array(
             'worker.run',
             'worker.health_check',
-            'worker.wakeup',
+            'worker.wake_up',
             'worker.sleep',
-            'worker.wakeup',
+            'worker.wake_up',
             'worker.stop',
         );
 
@@ -129,7 +129,7 @@ class LoopTest extends TestCase
         $expectedEvents = array(
             'worker.run',
             'worker.health_check',
-            'worker.wakeup',
+            'worker.wake_up',
             'worker.stop',
         );
 
@@ -159,7 +159,7 @@ class LoopTest extends TestCase
         $expectedEvents = array(
             'worker.run',
             'worker.health_check',
-            'worker.wakeup',
+            'worker.wake_up',
             'worker.health_check',
             'worker.stop',
         );

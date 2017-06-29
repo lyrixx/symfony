@@ -16,5 +16,8 @@ namespace Symfony\Component\Worker\MessageFetcher;
  */
 interface MessageFetcherInterface
 {
+    /**
+     * @return string|bool The message or false
+     */
     public function fetchMessage();
 }
