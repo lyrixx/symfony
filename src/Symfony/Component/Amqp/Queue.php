@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Amqp;
 
+use Symfony\Component\Amqp\Exception\InvalidArgumentException;
 use Symfony\Component\Amqp\RetryStrategy\RetryStrategyInterface;
 
 /**
@@ -24,8 +25,6 @@ class Queue extends \AMQPQueue
     private $retryStrategyQueuePattern;
 
     /**
-     * Constructor.
-     *
      * Special arguments:
      *
      * * routing_keys:
@@ -40,6 +39,11 @@ class Queue extends \AMQPQueue
      *   * The queue pattern to use for messages that needs to wait (default to %exchange%.%time%.wait)
      *   * The pattern is expanded according to the %exchange% and %time% values.
      * * bind_arguments: An array of bind arguments
+     *
+     * @param \AMQPChannel $channel
+     * @param $name
+     * @param array $arguments
+     * @param bool $declare
      */
     public function __construct(\AMQPChannel $channel, $name, array $arguments = array(), $declare = true)
     {
@@ -55,7 +59,7 @@ class Queue extends \AMQPQueue
                 $routingKeys = array($routingKeys);
             }
             if (!is_array($routingKeys) && null !== $routingKeys && false !== $routingKeys) {
-                throw new \InvalidArgumentException(sprintf('"routing_keys" option should be a string, false, null or an array of string, "%s" given.', gettype($routingKeys)));
+                throw new InvalidArgumentException(sprintf('"routing_keys" option should be a string, false, null or an array of string, "%s" given.', gettype($routingKeys)));
             }
 
             unset($arguments['routing_keys']);
@@ -80,7 +84,7 @@ class Queue extends \AMQPQueue
         if (array_key_exists('retry_strategy', $arguments)) {
             $this->retryStrategy = $arguments['retry_strategy'];
             if (!$this->retryStrategy instanceof RetryStrategyInterface) {
-                throw new \InvalidArgumentException('The retry_strategy should be an instance of RetryStrategyInterface.');
+                throw new InvalidArgumentException('The retry_strategy should be an instance of RetryStrategyInterface.');
             }
             unset($arguments['retry_strategy']);
         }
@@ -127,6 +131,9 @@ class Queue extends \AMQPQueue
         }
     }
 
+    /**
+     * Declares this queue by binding it to Exchange instances.
+     */
     public function declareAndBind()
     {
         $this->declareQueue();
@@ -138,16 +145,25 @@ class Queue extends \AMQPQueue
         }
     }
 
+    /**
+     * @return array
+     */
     public function getBindings()
     {
         return $this->bindings;
     }
 
+    /**
+     * @return RetryStrategyInterface
+     */
     public function getRetryStrategy()
     {
         return $this->retryStrategy;
     }
 
+    /**
+     * @return string
+     */
     public function getRetryStrategyQueuePattern()
     {
         return $this->retryStrategyQueuePattern;

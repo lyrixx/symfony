@@ -9,30 +9,30 @@ ask question about the "documentation". But please, don't over-comment the
 
 ### AMQP
 
-It is a library created at @sensiolabs few years ago (Mon Mar 18 17:26:01 2013 +0100).
+It is a library created at @SensioLabs few years ago (Mon Mar 18 17:26:01 2013 +0100).
 Its goal is to ease the communication with a service that implement [AMQP](https://fr.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol)
 For example, [RabbitMQ](http://www.rabbitmq.com/) implements AMQP.
 
 At that time, [Swarrot](https://github.com/swarrot/swarrot) did not exist yet
 and only [php-amqplib](https://github.com/php-amqplib/php-amqplib) existed.
 
-We started by using php-amqplib but we faced many issues: memory leak, bad
-handling of signal, poor documentation
+We started by using ``php-amqplib`` but we faced many issues: memory leak, bad
+handling of signal, poor documentation...
 
 So we decided to stop using it and to build our own library. Over the years, we
-added very nice features, we fixed very weird edge case and we gain real
+added very nice features, we fixed very weird edge cases and we gain real
 expertise on AMQP.
 
 Nowadays, it's very common to use AMQP in a web / CLI project.
 
 So four years later, we decided to open-source it and to add it to Symfony to
-leverage the Symfony Ecosystem (code quality, release process, documentation,
+leverage the Symfony ecosystem (code quality, release process, documentation,
 visibility, community, etc.)
 
 So basically it's an abstraction of the [AMQP pecl](https://github.com/pdezwart/php-amqp/).
 
 Here is the README.rst we had for this lib. I have updated it to match the
-version that will land in Symfony
+version that will land in Symfony.
 
 <details>
 <summary>The old README (but updated)</summary>
@@ -143,6 +143,7 @@ first time, you can pass an offset::
     based on the retry strategy you set.
 
 .. note::
+
     Don't forget to ``ack`` or ``nack`` your message if you retry it. And
     obviously you should not use the AMQP_Requeue flag.
 
@@ -172,9 +173,9 @@ You can then binding a queue to this named exchange easily::
 The second argument of ``createExchange()`` takes an array of arguments passed
 to the exchange. The following keys are used to further configure the exchange:
 
-* ``flags``: Sets the exchange flags;
+* ``flags``: sets the exchange flags;
 
-* ``type``: Sets the type of the queue (see ``\AMQP_EX_TYPE_*`` constants).
+* ``type``: sets the type of the queue (see ``\AMQP_EX_TYPE_*`` constants).
 
 .. note::
 
@@ -196,7 +197,7 @@ queue arguments; the following keys are used to further configure the queue:
   an exchange;
 
 * ``retry_strategy``: The retry strategy to use (an instance of
-  ``RetryStrategyInterface``).
+  :class:``Symfony\\Amqp\\RetryStrategy\\RetryStrategyInterface``).
 
 .. note::
 
@@ -208,21 +209,21 @@ Implementation details
 The retry strategy
 ..................
 
-The retry strategy is implemented with two customs and privates exchanges:
+The retry strategy is implemented with two custom and private exchanges:
 ``symfony.dead_letter`` and ``symfony.retry``.
 
 Calling ``Broker::retry`` will publish the same message in the
 ``symfony.dead_letter`` exchange.
 
 This exchange will route the message to a queue named like
-``%exchange%.%time%.wait``. For example ``sensiolabs.default.000005.wait``. This
+``%exchange%.%time%.wait``, for example ``sensiolabs.default.000005.wait``. This
 queue has a TTL of 5 seconds. It means that if nothing consumes this message, it
 will be dropped after 5 seconds. But this queue has also a Dead Letter (DL). It
 means that instead of dropping the message, the AMQP server will re-publish
 automatically the message to the Exchange configured as DL.
 
 After 5 seconds the message will be re-published to ``symfony.retry`` Exchange.
-This exchange is bound with every single queues. Finally, the message will land
+This exchange is bound with every single queue. Finally, the message will land
 in the original queue.
 
 </details>

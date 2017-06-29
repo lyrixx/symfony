@@ -18,16 +18,27 @@ use Symfony\Component\Amqp\UrlParser;
  */
 trait AmqpTestTrait
 {
-    private function assertNextMessageBody($body, $queueName)
+    /**
+     * @param string        $body
+     * @param string        $queueName
+     * @param callable|null $callback  A callable to check the \AMQPEnvelope
+     */
+    private function assertNextMessageBody($body, $queueName, callable $callback = null)
     {
         $msg = $this->createQueue($queueName)->get(\AMQP_AUTOACK);
 
         $this->assertInstanceOf(\AMQPEnvelope::class, $msg);
         $this->assertSame($body, $msg->getBody());
 
-        return $msg;
+        if ($callback) {
+            call_user_func($callback, $msg);
+        }
     }
 
+    /**
+     * @param int $expected The count
+     * @param string $queueName
+     */
     private function assertQueueSize($expected, $queueName)
     {
         $queue = $this->createQueue($queueName);
@@ -44,6 +55,11 @@ trait AmqpTestTrait
         $this->assertSame($expected, count($msgs));
     }
 
+    /**
+     * @param string $name
+     *
+     * @return \AmqpExchange
+     */
     private function createExchange($name)
     {
         $exchange = new \AmqpExchange($this->createChannel());
@@ -55,6 +71,11 @@ trait AmqpTestTrait
         return $exchange;
     }
 
+    /**
+     * @param string $name
+     *
+     * @return \AmqpQueue
+     */
     private function createQueue($name)
     {
         $queue = new \AmqpQueue($this->createChannel());
@@ -65,16 +86,27 @@ trait AmqpTestTrait
         return $queue;
     }
 
+    /**
+     * @param string $name
+     */
     private function emptyQueue($name)
     {
         $this->createQueue($name)->purge();
     }
 
+    /**
+     * @return \AmqpChannel
+     */
     private function createChannel()
     {
         return new \AmqpChannel($this->createConnection());
     }
 
+    /**
+     * @param string|null $rabbitmqUrl
+     *
+     * @return \AmqpConnection
+     */
     private function createConnection($rabbitmqUrl = null)
     {
         $rabbitmqUrl = $rabbitmqUrl ?: getenv('RABBITMQ_URL');

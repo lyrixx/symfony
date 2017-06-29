@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Amqp\RetryStrategy;
 
+use Symfony\Component\Amqp\Exception\InvalidArgumentException;
+
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Grégoire Pineau <lyrixx@lyrixx.info>
@@ -29,18 +31,24 @@ class ConstantRetryStrategy implements RetryStrategyInterface
         $time = (int) $time;
 
         if ($time < 1) {
-            throw new \InvalidArgumentException('"time" should be at least 1.');
+            throw new InvalidArgumentException('"time" should be at least 1.');
         }
 
         $this->time = $time;
         $this->max = $max;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function isRetryable(\AMQPEnvelope $msg)
     {
         return $this->max ? $msg->getHeader('retries') < $this->max : true;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getWaitingTime(\AMQPEnvelope $msg)
     {
         return $this->time;

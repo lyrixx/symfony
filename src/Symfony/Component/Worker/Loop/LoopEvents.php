@@ -18,7 +18,7 @@ final class LoopEvents
 {
     const RUN = 'worker.run';
     const HEALTH_CHECK = 'worker.health_check';
-    const WAKEUP = 'worker.wakeup';
+    const WAKE_UP = 'worker.wake_up';
     const SLEEP = 'worker.sleep';
     const STOP = 'worker.stop';
 

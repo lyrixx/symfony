@@ -25,6 +25,9 @@ class LoopEvent extends Event
         $this->loop = $loop;
     }
 
+    /**
+     * @return LoopInterface
+     */
     public function getLoop()
     {
         return $this->loop;

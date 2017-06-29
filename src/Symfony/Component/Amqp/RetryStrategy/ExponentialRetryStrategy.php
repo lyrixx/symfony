@@ -23,8 +23,8 @@ class ExponentialRetryStrategy implements RetryStrategyInterface
     private $offset;
 
     /**
-     * @param int $max The maximum number of time to retry (0 means indefinitely)
-     * @param int $max The offset for the first power of 2
+     * @param int $max    The maximum number of time to retry (0 means indefinitely)
+     * @param int $offset The offset for the first power of 2
      */
     public function __construct($max = 0, $offset = 0)
     {
@@ -32,13 +32,19 @@ class ExponentialRetryStrategy implements RetryStrategyInterface
         $this->offset = $offset;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function isRetryable(\AMQPEnvelope $msg)
     {
-        return $this->max ? $msg->getHeader('retries') < $this->max : true;
+        return $this->max ? (int) $msg->getHeader('retries') < $this->max : true;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getWaitingTime(\AMQPEnvelope $msg)
     {
-        return pow(2, $msg->getHeader('retries') + $this->offset);
+        return pow(2, (int) $msg->getHeader('retries') + $this->offset);
     }
 }

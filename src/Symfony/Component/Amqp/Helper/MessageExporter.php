@@ -12,8 +12,12 @@
 namespace Symfony\Component\Amqp\Helper;
 
 use Symfony\Component\Amqp\Broker;
+use Symfony\Component\Amqp\Exception\InvalidArgumentException;
 
 /**
+ * An utility class to return a compressed file with all
+ * message for a Queue.
+ *
  * @author Grégoire Pineau <lyrixx@lyrixx.info>
  */
 class MessageExporter
@@ -25,6 +29,12 @@ class MessageExporter
         $this->broker = $broker;
     }
 
+    /**
+     * @param string $queueName
+     * @param bool   $ack
+     *
+     * @return string|null A tgz filename or null if there is no message in the queue
+     */
     public function export($queueName, $ack = false)
     {
         $this->checkQueueName($queueName);
@@ -35,7 +45,7 @@ class MessageExporter
         }
 
         if (!$messages) {
-            return;
+            return null;
         }
 
         $filename = sprintf('%s/symfony-amqp-consumer-queue-%s.tar', sys_get_temp_dir(), str_replace('.', '-', $queueName));
@@ -72,10 +82,15 @@ class MessageExporter
         return $tgz;
     }
 
+    /**
+     * @param string $queueName
+     *
+     * @throws InvalidArgumentException
+     */
     protected function checkQueueName($queueName)
     {
         if ('.dead' !== substr($queueName, -5)) {
-            throw new \InvalidArgumentException('Only dead queue can be exported.');
+            throw new InvalidArgumentException('Only dead queue can be exported.');
         }
     }
 }

@@ -12,17 +12,17 @@
 namespace Symfony\Component\Amqp;
 
 /**
+ * @internal
+ *
  * @author Grégoire Pineau <lyrixx@lyrixx.info>
  */
 class UrlParser
 {
     /**
-     * This class should not be instantiated.
+     * @param string $url
+     *
+     * @return array
      */
-    private function __construct()
-    {
-    }
-
     public static function parseUrl($url)
     {
         $parts = parse_url($url);
@@ -34,5 +34,12 @@ class UrlParser
             'port' => isset($parts['port']) ? $parts['port'] : 5672,
             'vhost' => isset($parts['path'][1]) ? substr($parts['path'], 1) : '/',
         );
+    }
+
+    /**
+     * This class should not be instantiated.
+     */
+    private function __construct()
+    {
     }
 }

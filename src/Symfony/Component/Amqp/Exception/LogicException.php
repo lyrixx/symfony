@@ -9,15 +9,8 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Worker\MessageFetcher;
+namespace Symfony\Component\Amqp\Exception;
 
-/**
- * @author Grégoire Pineau <lyrixx@lyrixx.info>
- */
-interface MessageFetcherInterface
+class LogicException extends \LogicException implements ExceptionInterface
 {
-    /**
-     * @return string|bool The message or false
-     */
-    public function fetchMessage();
 }

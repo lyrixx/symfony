@@ -39,6 +39,9 @@ class LimitMemoryUsageListener implements EventSubscriberInterface
         );
     }
 
+    /**
+     * @throws StopException
+     */
     public function limitMemoryUsage()
     {
         gc_collect_cycles();
