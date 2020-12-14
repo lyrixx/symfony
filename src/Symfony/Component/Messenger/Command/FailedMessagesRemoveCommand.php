@@ -20,6 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Messenger\Transport\Receiver\ListableReceiverInterface;
 use Symfony\Component\Messenger\Transport\Receiver\ReceiverInterface;
+use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
 
 /**
  * @author Ryan Weaver <ryan@symfonycasts.com>
@@ -27,6 +28,15 @@ use Symfony\Component\Messenger\Transport\Receiver\ReceiverInterface;
 class FailedMessagesRemoveCommand extends AbstractFailedMessagesCommand
 {
     protected static $defaultName = 'messenger:failed:remove';
+
+    private $phpSerializer;
+
+    public function __construct(string $receiverName, ReceiverInterface $receiver, ?PhpSerializer $phpSerializer = null)
+    {
+        parent::__construct($receiverName, $receiver);
+
+        $this->phpSerializer = $phpSerializer;
+    }
 
     /**
      * {@inheritdoc}
@@ -75,7 +85,13 @@ EOF
         }
 
         foreach ($ids as $id) {
-            $envelope = $receiver->find($id);
+            try {
+                $this->phpSerializer && $this->phpSerializer->enableClassNotFoundCreation();
+                $envelope = $receiver->find($id);
+            } finally {
+                $this->phpSerializer && $this->phpSerializer->enableClassNotFoundCreation(false);
+            }
+
             if (null === $envelope) {
                 $io->error(sprintf('The message with id "%s" was not found.', $id));
                 continue;
