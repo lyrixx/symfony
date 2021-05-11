@@ -94,6 +94,11 @@ class Form implements \IteratorAggregate, FormInterface, ClearableErrorsInterfac
     private $submitted = false;
 
     /**
+     * @var bool|null
+     */
+    private $valid = null;
+
+    /**
      * @var FormInterface|ClickableInterface|null The button that was used to submit the form
      */
     private $clickedButton;
@@ -501,6 +506,8 @@ class Form implements \IteratorAggregate, FormInterface, ClearableErrorsInterfac
             throw new AlreadySubmittedException('A form can only be submitted once.');
         }
 
+        $this->valid = null;
+
         // Initialize errors in the very beginning so we're sure
         // they are collectable during submission only
         $this->errors = [];
@@ -676,6 +683,12 @@ class Form implements \IteratorAggregate, FormInterface, ClearableErrorsInterfac
      */
     public function addError(FormError $error)
     {
+        $this->valid = null;
+        $parent = $this;
+        while ($parent = $parent->parent) {
+            $parent->valid = null;
+        }
+
         if (null === $error->getOrigin()) {
             $error->setOrigin($this);
         }
@@ -748,6 +761,10 @@ class Form implements \IteratorAggregate, FormInterface, ClearableErrorsInterfac
      */
     public function isValid()
     {
+        if (null !== $this->valid) {
+            return $this->valid;
+        }
+
         if (!$this->submitted) {
             throw new LogicException('Cannot check if an unsubmitted form is valid. Call Form::isSubmitted() before Form::isValid().');
         }
@@ -756,7 +773,7 @@ class Form implements \IteratorAggregate, FormInterface, ClearableErrorsInterfac
             return true;
         }
 
-        return 0 === \count($this->getErrors(true));
+        return $this->valid = 0 === \count($this->getErrors(true));
     }
 
     /**
@@ -814,6 +831,8 @@ class Form implements \IteratorAggregate, FormInterface, ClearableErrorsInterfac
      */
     public function clearErrors(bool $deep = false): self
     {
+        $this->valid = null;
+
         $this->errors = [];
 
         if ($deep) {

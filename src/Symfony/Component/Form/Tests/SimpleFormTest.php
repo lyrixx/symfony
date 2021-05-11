@@ -358,6 +358,22 @@ class SimpleFormTest extends AbstractFormTest
         $this->assertFalse($form->isValid());
     }
 
+    public function testNotValidIsCleared()
+    {
+        $form = $this->getBuilder()->getForm();
+        $form->submit('foobar');
+
+        $this->assertTrue($form->isValid());
+
+        $form->addError(new FormError('Error!'));
+
+        $this->assertFalse($form->isValid());
+
+        $form->clearErrors();
+
+        $this->assertTrue($form->isValid());
+    }
+
     public function testHasErrors()
     {
         $this->form->addError(new FormError('Error!'));

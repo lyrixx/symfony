@@ -61,6 +61,27 @@ class CompoundFormTest extends AbstractFormTest
         $this->assertFalse($this->form->isValid());
     }
 
+    public function testNotValidIsCleared()
+    {
+        $this->form->add($this->getBuilder('firstName')->getForm());
+        $this->form->add($this->getBuilder('lastName')->getForm());
+
+        $this->form->submit([
+            'firstName' => 'Grégoire',
+            'lastName' => 'Pineau',
+        ]);
+
+        $this->assertTrue($this->form->isValid());
+
+        $this->form->get('lastName')->addError(new FormError('Invalid'));
+
+        $this->assertFalse($this->form->isValid());
+
+        $this->form->clearErrors(true);
+
+        $this->assertTrue($this->form->isValid());
+    }
+
     public function testDisabledFormsValidEvenIfChildrenInvalid()
     {
         $form = $this->getBuilder('person')
