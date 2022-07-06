@@ -14,6 +14,7 @@ require __DIR__.'/vendor/autoload.php';
 
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\VarExporter\VarExporter;
 
 Builder::cleanTarget();
 $emojisCodePoints = Builder::getEmojisCodePoints();
@@ -91,8 +92,17 @@ final class Builder
             }
         }
 
+        ksort($mapsByLocale);
+
         foreach ($mapsByLocale as $locale => $maps) {
-            yield $locale => self::createRules($maps);
+            $parentLocale = $locale;
+
+            while (false !== $i = strrpos($parentLocale, '_')) {
+                $parentLocale = substr($parentLocale, 0, $i);
+                $maps += $mapsByLocale[$parentLocale] ?? [];
+            }
+
+            yield strtolower($locale) => self::createRules($maps);
         }
     }
 
@@ -106,7 +116,7 @@ final class Builder
     public static function saveRules(iterable $rulesByLocale): void
     {
         foreach ($rulesByLocale as $locale => $rules) {
-            file_put_contents(self::TARGET_DIR."/$locale.txt", $rules);
+            file_put_contents(self::TARGET_DIR."/$locale.php", "<?php\n\nreturn ".VarExporter::export($rules).";\n");
         }
     }
 
@@ -117,19 +127,13 @@ final class Builder
         }
     }
 
-    private static function createRules(array $maps): string
+    private static function createRules(array $maps): array
     {
         // We must sort the maps by the number of code points, because the order really matters:
         // 🫶🏼 must be before 🫶
         krsort($maps);
         $maps = array_merge(...$maps);
 
-        $rules = '';
-        foreach ($maps as $emoji => $name) {
-            $name = preg_replace('{([^[:alnum:]])}u', '\\\\$1', $name);
-            $rules .= "\\$emoji > $name ;\n";
-        }
-
-        return $rules;
+        return [array_keys($maps), array_values($maps)];
     }
 }
